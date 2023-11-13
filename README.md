@@ -18,8 +18,8 @@ Before using these scripts, ensure you have the following prerequisites:
 The project is organized with the following files:
 
 - **.env**: This file contains environment variables for the Spotify API client ID, client secret, user ID, and database path.
-- **create_db.py**: Python script for creating the SQLite database schema.
-- **spotify_api.py**: Module providing a class (`SpotifyAPI`) for interacting with the Spotify API.
+- **create_db.py**: This script is responsible for creating the SQLite database schema. It defines tables for users, playlists, tracks, albums, and artists.
+- **spotify_api.py**: Module providing a class (`SpotifyAPI`) that handles authentication and makes requests to the Spotify API. It includes methods to fetch user data, playlists, and track details.
 - **main.py**: Main script orchestrating the ETL process, including extraction, transformation, and loading of data.
 - **LICENSE**: The license file for the project.
 - **README.md**: Project documentation providing an overview, setup instructions, and contribution guidelines.
