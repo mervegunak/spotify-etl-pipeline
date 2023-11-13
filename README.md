@@ -35,7 +35,7 @@ The project is organized with the following files:
 2. Install dependencies:
 
    ```bash
-   pip install -r requirements.txt
+   pip3 install -r requirements.txt
    
 3. Create a .env file with your Spotify API credentials and database information:
 
@@ -48,6 +48,6 @@ The project is organized with the following files:
 4. Run the ETL pipeline:
 
    ```bash
-    python main.py
+    python3 main.py
    
 After running main.py, the ETL pipeline will fetch user data, playlist details, track information, and seamlessly load them into the SQLite database for further exploration and analysis. 
