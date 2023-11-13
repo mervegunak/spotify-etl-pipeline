@@ -51,3 +51,10 @@ The project is organized with the following files:
     python3 main.py
    
 After running main.py, the ETL pipeline will fetch user data, playlist details, track information, and seamlessly load them into the SQLite database for further exploration and analysis. 
+
+# Improvements  (to-do)
+
+* Adding more informative logging.
+* Enhancing error handling mechanisms.
+* Implementing unit tests for critical functions to ensure the robustness of the codebase.
+* 
