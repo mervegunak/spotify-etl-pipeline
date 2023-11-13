@@ -1,7 +1,7 @@
 import sqlite3
 import logging
 
-def create_database(db_path='test.db'):
+def create_database(db_path='spotify_data.db'):
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
