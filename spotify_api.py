@@ -60,6 +60,21 @@ class SpotifyAPI:
         """Get playlists for the specified user ID."""
         return self._authenticated_request(f"{self.USER_ENDPOINT}/{self.user_id}/{self.PLAYLISTS_ENDPOINT}")["items"]
 
-    def get_playlist_tracks(self, playlist_id):
-        """Get tracks for the specified playlist ID."""
-        return self._authenticated_request(f"{self.PLAYLISTS_ENDPOINT}/{playlist_id}/{self.TRACKS_ENDPOINT}")["items"]
+    def get_playlist_tracks(self, playlist_id, offset=0, limit=100):
+        """Get tracks for the specified playlist ID with pagination."""
+        url = f"{self.SPOTIFY_API_URL}{self.PLAYLISTS_ENDPOINT}/{playlist_id}/{self.TRACKS_ENDPOINT}"
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+
+        all_items = []
+        total_tracks = float('inf')
+
+        while offset < total_tracks:
+            params = {"offset": offset, "limit": limit}
+            response = self._get_request(url, headers=headers, params=params)
+            items = response.get("items", [])
+
+            if not items:
+                break  # No more items to retrieve
+
+            all_items.extend(items)
+            offset += limit
