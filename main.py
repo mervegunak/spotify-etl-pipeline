@@ -11,7 +11,7 @@ load_dotenv()
 def extract_spotify_data(client_id, client_secret, user_id):
     spotify_api = SpotifyAPI(client_id, client_secret, user_id)
 
-    # Initialize tables list:
+    # Tables list:
     track_data = []
     artist_data = []
     album_data = []
@@ -20,7 +20,7 @@ def extract_spotify_data(client_id, client_secret, user_id):
     # Get user data
     user_item = spotify_api.get_user_data()
 
-    # Extract user_id and user_name from user_item
+    # Extract user_name from user_item
     user_name = user_item.get("display_name", "")  # Assuming display_name is available in user_data
 
     user_dict = {
@@ -30,12 +30,12 @@ def extract_spotify_data(client_id, client_secret, user_id):
 
     user_data = [user_dict]
 
-    # Get playlists and choose the first playlist
+    # Get playlists 
     playlist_item = spotify_api.get_playlists()
 
     if playlist_item:
         for item in playlist_item:
-            # playlist information
+            # Playlist information
             playlist_id = item['id']
             playlist_name = item['name']
 
@@ -78,8 +78,8 @@ def extract_spotify_data(client_id, client_secret, user_id):
                 track_data.append(track_dict)
                 artist_data.append(artist_dict)
                 album_data.append(album_dict)
-                # Log the number of tracks found for each playlist
-
+                
+            # Log the number of tracks found for each playlist
             logging.info(f"Playlist {playlist_id} has {len(tracks_item)} tracks.")
     else:
         logging.info("No playlists found.")
@@ -125,12 +125,13 @@ def load_data_to_database(user_df, playlist_df, track_df, album_df, artist_df, d
 
 def etl_pipeline():
     try:
-        # ETL Extract
+
         client_id = os.getenv('SPOTIFY_CLIENT_ID')
         client_secret = os.getenv('SPOTIFY_CLIENT_SECRET')
         user_id = os.getenv('SPOTIFY_USER_ID')
         db_path = os.getenv('DB_PATH')
-
+        
+        # ETL Extract
         user_data, playlist_data, track_data, album_data, artist_data = extract_spotify_data(client_id, client_secret,
                                                                                              user_id)
 
