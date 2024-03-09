@@ -72,3 +72,6 @@ Run the ETL pipeline:
 That's all! Just provide AWS S3 credentials. 
 
 Then this script will fetch user, playlist, track data via Spotify API and upload them to your specified folder in your AWS S3 Bucket. If you do not provide these credentials, your data will be uploaded to the SQLite database.
+
+
+Medium blog post is on the way !!
