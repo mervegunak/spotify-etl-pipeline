@@ -1,8 +1,12 @@
 import sqlite3
 import logging
+import os
 
-def create_database(db_path='spotify_data.db'):
+def create_database(db_path=None):
     try:
+        if db_path is None:
+            db_path = os.getenv('DB_PATH', 'default_database.db')
+
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
 
