@@ -14,7 +14,7 @@ Before using these scripts, ensure you have the following prerequisites:
   ```bash
   pip install -r requirements.txt
   
-# File Structure
+## File Structure
 The project is organized with the following files:
 
 - **.env**: This file contains environment variables for the Spotify API client ID, client secret, user ID, and database path.
@@ -47,14 +47,28 @@ The project is organized with the following files:
 
 4. Run the ETL pipeline:
 
-   ```bash
-    python3 main.py
+       python3 main.py
    
 After running main.py, the ETL pipeline will fetch user data, playlist details, track information, and seamlessly load them into the SQLite database for further exploration and analysis. 
 
-# Improvements  (to-do)
+## Optional: Upload Data to AWS S3 Bucket with Boto3
 
-* Adding more informative logging.
-* Enhancing error handling mechanisms.
-* Implementing unit tests for critical functions to ensure the robustness of the codebase.
-* 
+I've added an option to upload data to your AWS S3 Bucket using the `upload_to_s3` function.
+
+Just, **add your AWS S3 credentials to your `.env` file:**
+
+   (If you don't provide this information, the script will use only your Spotify credentials and SQLite database options.)
+   
+      
+       AWS_ACCESS_KEY="your_aws_access_key"
+       AWS_SECRET_KEY="your_aws_secret_key"
+       AWS_S3_BUCKET_NAME="your_s3_bucket_name"
+       AWS_REGION="your_aws_region"
+     
+Run the ETL pipeline:
+
+       python3 main.py
+
+That's all! Just provide AWS S3 credentials. 
+
+Then this script will fetch user, playlist, track data via Spotify API and upload them to your specified folder in your AWS S3 Bucket. If you do not provide these credentials, your data will be uploaded to the SQLite database.
