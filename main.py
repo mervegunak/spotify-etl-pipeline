@@ -5,6 +5,9 @@ import logging
 from create_db import create_database
 import os
 from dotenv import load_dotenv
+import boto3
+import botocore.exceptions
+from io import StringIO
 
 load_dotenv()
 
@@ -121,16 +124,60 @@ def load_data_to_database(user_df, playlist_df, track_df, album_df, artist_df, d
         artist_df.to_sql('artist', conn, if_exists='replace', index=False)
     except sqlite3.Error as e:
         logging.error(f"An error occurred during data insertion: {e}", exc_info=True)
+    else:
+        logging.info("Data loaded to SQLite successfully.")
 
+
+def upload_to_s3(df, key, folder_name='', aws_access_key=None, aws_secret_key=None, aws_region=None, aws_s3_bucket_name=None):
+    try:
+        csv_buffer = StringIO()
+        df.to_csv(csv_buffer, index=False)
+
+        if aws_access_key and aws_secret_key and aws_region and aws_s3_bucket_name:
+            s3_client = boto3.client(
+                service_name='s3',
+                region_name=aws_region,
+                aws_access_key_id=aws_access_key,
+                aws_secret_access_key=aws_secret_key
+            )
+
+            # Concatenate folder_name and key to form the full S3 object key
+            full_key = f"{folder_name}/{key}" if folder_name else key
+
+            s3_client.put_object(Body=csv_buffer.getvalue(), Bucket=aws_s3_bucket_name, Key=full_key)
+
+            logging.info(f"Data successfully uploaded to AWS S3 with key: {full_key}")
+        else:
+            raise ValueError("AWS credentials are missing. Data not uploaded to AWS S3.")
+    except botocore.exceptions.NoCredentialsError:
+        logging.error("AWS credentials are incorrect or missing. Please check your AWS access key and secret key.",
+                      exc_info=True)
+    except botocore.exceptions.ParamValidationError:
+        logging.error("Invalid parameter value. Please check your AWS region or S3 bucket name.", exc_info=True)
+    except Exception as e:
+        logging.error(f"An error occurred during data upload to AWS S3: {e}", exc_info=True)
+    finally:
+        # Close the StringIO buffer to free up resources
+        csv_buffer.close()
 
 def etl_pipeline():
     try:
+        # Check for required environment variables
+        required_env_vars = ['SPOTIFY_CLIENT_ID', 'SPOTIFY_CLIENT_SECRET', 'SPOTIFY_USER_ID', 'DB_PATH']
+        for var in required_env_vars:
+            if not os.getenv(var):
+                raise EnvironmentError(f"Missing required environment variable: {var}")
 
         client_id = os.getenv('SPOTIFY_CLIENT_ID')
         client_secret = os.getenv('SPOTIFY_CLIENT_SECRET')
         user_id = os.getenv('SPOTIFY_USER_ID')
         db_path = os.getenv('DB_PATH')
-        
+
+        aws_access_key = os.getenv('AWS_ACCESS_KEY')
+        aws_secret_key = os.getenv('AWS_SECRET_KEY')
+        aws_s3_bucket_name = os.getenv('AWS_S3_BUCKET_NAME')
+        aws_region = os.getenv('AWS_REGION')
+
         # ETL Extract
         user_data, playlist_data, track_data, album_data, artist_data = extract_spotify_data(client_id, client_secret,
                                                                                              user_id)
@@ -142,14 +189,26 @@ def etl_pipeline():
         # Perform data validation checks
         check_duplicates_and_missing_values(track_df, artist_df, album_df, playlist_df, user_df)
 
-        # ETL Load
-        load_data_to_database(user_df, playlist_df, track_df, album_df, artist_df, db_path)
-        logging.info("ETL Pipeline completed successfully.")
+        if aws_access_key and aws_secret_key and aws_s3_bucket_name:
+            # ETL Load to AWS S3
+            upload_to_s3(user_df, 'user.csv', 'csv-files', aws_access_key, aws_secret_key, aws_region, aws_s3_bucket_name)
+            upload_to_s3(playlist_df, 'playlist.csv', 'csv-files', aws_access_key, aws_secret_key, aws_region, aws_s3_bucket_name)
+            upload_to_s3(track_df, 'track.csv', 'csv-files', aws_access_key, aws_secret_key, aws_region, aws_s3_bucket_name)
+            upload_to_s3(album_df, 'album.csv', 'csv-files', aws_access_key, aws_secret_key, aws_region, aws_s3_bucket_name)
+            upload_to_s3(artist_df, 'artist.csv', 'csv-files', aws_access_key, aws_secret_key, aws_region, aws_s3_bucket_name)
+
+            logging.info("Data uploaded to AWS S3 successfully.")
+        else:
+            # ETL Load to SQLite
+            create_database(db_path)  # Ensure the database is created before loading data
+            load_data_to_database(user_df, playlist_df, track_df, album_df, artist_df, db_path)
+
+            logging.info("Data loaded to SQLite successfully.")
+    except EnvironmentError as e:
+        logging.error(f"Error with environment variables: {e}", exc_info=True)
     except Exception as e:
         logging.error(f"An error occurred during ETL Pipeline: {e}", exc_info=True)
 
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    create_database()
     etl_pipeline()
