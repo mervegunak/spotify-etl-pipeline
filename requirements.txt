@@ -13,4 +13,4 @@ requests==2.31.0
 s3transfer==0.10.0
 six==1.16.0
 tzdata==2024.1
-urllib3==1.26.18
+urllib3==1.26.19
